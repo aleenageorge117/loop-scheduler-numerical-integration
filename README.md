@@ -1,6 +1,6 @@
 # loop-scheduler-numerical-integration
 
-Loop scheduler with pthreads
+Loop scheduler with pthreads (NUMERICAL INTEGRATION)
 
 1. Preliminary
     Question: Before anything, we will need to get timing for sequential execution. Navigate to the sequential/ directory. Compile the sequential code with make sequential and get sequential time by running make bench on mamba.
@@ -37,7 +37,7 @@ Loop scheduler with pthreads
             loop.getnext(&begin, &end);
             executeinnerloop(begin, end) ;
         }
-        
+
     The implementation of a loop scheduler boils done to implementing the two functions done and getnext. They can be easily implemented using mutual exclusion. 
     The size of the interval [begin;end] is called the granularity and is usually a parameter of the scheduler. Pay attention that managing the memory of the loop scheduler can be a bit tricky as you need to be sure that all threads coordinated by the loop scheduler are done.
     To compute numerical integration, note that the program needs to make sure that the result is correct, to do so, you can enforce the mutual exclusion in three places:
@@ -51,3 +51,17 @@ Loop scheduler with pthreads
     The code should take the same parameter as the previous one except:
     • sync can also take chunk as a synchronization method
     • granularity, an integer indicating how many iterations does one thread take at a time
+
+
+// IN CASE OF ERROR
+
+rm *.o //remove all .o files
+
+make libfunctions.a
+make libintegrate.a
+
+cd (folder_name) //navigate to folder (sequential/static/dynamic)
+
+make (file_name) //compile cpp file in navigated folder
+
+
