@@ -1,0 +1,3 @@
+running on gal-c2.uncc.edu
+THREAD=16: before starting time is Sun Oct 10 18:26:54 EDT 2021
+slurmstepd: error: *** JOB 2502860 ON gal-c2 CANCELLED AT 2021-10-10T21:27:23 DUE TO TIME LIMIT ***

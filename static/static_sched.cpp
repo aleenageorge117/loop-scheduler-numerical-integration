@@ -20,8 +20,8 @@ extern "C"
 }
 #endif
 
-float global_result = 0;
-float global_x_val = 0, global_x_int;
+float globalResult = 0;
+float globalXVal = 0, globalXInt;
 pthread_mutex_t mut_result;
 
 struct arguments
@@ -32,92 +32,71 @@ struct arguments
 	int intensity, func;
 };
 
-void *thread_level_int(void *argument)
+float getSum(void *argument, float i) {
+	struct arguments *arg = (struct arguments *)argument;
+	globalXInt = arg->a + ((float)i + 0.5) * ((arg->b - arg->a) / (float)arg->n);
+	float returnResult = 0.0;
+
+	switch (arg->func) {
+		case 1: {
+			globalXVal = f1(globalXInt, arg->intensity);
+			break;
+		}
+		case 2: {
+			globalXVal = f2(globalXInt, arg->intensity);
+			break;
+		}
+		case 3: {
+			globalXVal = f3(globalXInt, arg->intensity);
+			break;
+		}
+		case 4: {
+			globalXVal = f4(globalXInt, arg->intensity);
+			break;
+		}
+		default:
+			std::cout << "\nWrong function id!!" << std::endl;
+	}
+	returnResult = globalXVal * ((arg->b - arg->a) / (float)arg->n);
+	return returnResult;
+}
+
+void *threadLevelInt(void *argument)
 {
 	struct arguments *arg = (struct arguments *)argument;
 
 	for (unsigned long i = arg->start; i < arg->end; i++)
 	{
-
-		arg->x_int = (arg->a + ((float)i + 0.5) * ((arg->b - arg->a) / (float)arg->n));
-
-		switch (arg->func)
-		{
-		case 1:
-		{
-			arg->x_val = arg->x_val + f1(arg->x_int, arg->intensity);
-			break;
-		}
-		case 2:
-		{
-			arg->x_val = arg->x_val + f2(arg->x_int, arg->intensity);
-			break;
-		}
-		case 3:
-		{
-			arg->x_val = arg->x_val + f3(arg->x_int, arg->intensity);
-
-			break;
-		}
-		case 4:
-		{
-			arg->x_val = arg->x_val + f4(arg->x_int, arg->intensity);
-
-			break;
-		}
-
-		default:
-			std::cout << "\nWrong function id" << std::endl;
-		}
-		arg->result = arg->x_val * ((arg->b - arg->a) / (float)arg->n);
+		arg->result += getSum(argument, (float)i);
 	}
 	pthread_exit(NULL);
 }
 
-void *iteration_level_int(void *argument)
+void *iterationLevelInt(void *argument)
 {
 	struct arguments *arg = (struct arguments *)argument;
 
 	for (unsigned long i = arg->start; i < arg->end; i++)
 	{
-
 		pthread_mutex_lock(&mut_result);
-		global_x_int = arg->a + ((float)i + 0.5) * ((arg->b - arg->a) / (float)arg->n);
-
-		switch (arg->func)
-		{
-
-		case 1:
-		{
-			global_x_val = global_x_val + f1(global_x_int, arg->intensity);
-			break;
-		}
-		case 2:
-		{
-			global_x_val = global_x_val + f2(global_x_int, arg->intensity);
-			break;
-		}
-		case 3:
-		{
-			global_x_val = global_x_val + f3(global_x_int, arg->intensity);
-
-			break;
-		}
-		case 4:
-		{
-			global_x_val = global_x_val + f4(global_x_int, arg->intensity);
-
-			break;
-		}
-
-		default:
-			std::cout << "\nWrong function id" << std::endl;
-		}
-		global_result = global_x_val * ((arg->b - arg->a) / (float)arg->n);
+		globalResult += getSum(argument, (float)i);
 		pthread_mutex_unlock(&mut_result);
 	}
 
 	pthread_exit(NULL);
+}
+
+struct arguments getArgArr(float a, float b, unsigned long start, unsigned long end, int intensity, int func, float n) {
+  	struct arguments obj;
+	obj.a = a;
+	obj.b = b;
+	obj.start = start;
+	obj.end = end;
+	obj.intensity = intensity;
+	obj.func = func;
+	obj.n = n;
+
+	return obj;
 }
 
 int main(int argc, char *argv[])
@@ -152,14 +131,8 @@ int main(int argc, char *argv[])
 	{
 		for (int j = 0; j < nbthreads; j++)
 		{
-			arg[j].a = a;
-			arg[j].b = b;
-			arg[j].start = j * (n / nbthreads);
-			arg[j].end = arg[j].start + (n / nbthreads);
-			arg[j].intensity = intensity;
-			arg[j].func = func;
-			arg[j].n = n;
-			pthread_create(&threads[j], NULL, thread_level_int, (void *)&(arg[j]));
+			arg[j] = getArgArr(a, b, j * (n / nbthreads), j * (n / nbthreads)+(n / nbthreads), intensity, func, n);
+			pthread_create(&threads[j], NULL, threadLevelInt, (void *)&(arg[j]));
 		}
 		for (int i = 0; i < nbthreads; i++)
 		{
@@ -167,21 +140,15 @@ int main(int argc, char *argv[])
 		}
 		for (int k = 0; k < nbthreads; k++)
 		{
-			global_result += arg[k].result;
+			globalResult += arg[k].result;
 		}
 	}
 	else
 	{
 		for (int j = 0; j < nbthreads; j++)
 		{
-			arg[j].a = a;
-			arg[j].b = b;
-			arg[j].start = j * (n / nbthreads);
-			arg[j].end = arg[j].start + (n / nbthreads);
-			arg[j].intensity = intensity;
-			arg[j].func = func;
-			arg[j].n = n;
-			pthread_create(&threads[j], NULL, iteration_level_int, (void *)&(arg[j]));
+			arg[j] = getArgArr(a, b, j * (n / nbthreads), j * (n / nbthreads)+(n / nbthreads), intensity, func, n);
+			pthread_create(&threads[j], NULL, iterationLevelInt, (void *)&(arg[j]));
 		}
 
 		for (int j = 0; j < nbthreads; j++)
@@ -192,7 +159,7 @@ int main(int argc, char *argv[])
 
 	auto clock_end = std::chrono::system_clock::now();
 	std::chrono::duration<double> diff = clock_end - clock_start;
-	std::cout << global_result;
+	std::cout << globalResult;
 	std::cerr << diff.count();
 
 	return 0;

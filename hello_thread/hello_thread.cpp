@@ -6,14 +6,14 @@
 class arg_var
 {
 	public:
-		int i;
+	int i;
     int nbthreads;
 };
 
 void * printFunct(void* t)
 {
-	arg_var* temp=(arg_var *)t;
-	std::cout<<"I am thread "<<temp->i <<" In Nbthread \n";
+	arg_var* tempVar=(arg_var *)t;
+	std::cout<<"I am Thread "<<tempVar->i <<" In Nthread "<<tempVar->nbthreads<<"\n";
 	return NULL; 
 }
 
